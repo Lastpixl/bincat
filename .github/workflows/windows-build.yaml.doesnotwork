@@ -1,0 +1,81 @@
+# This currently fails with the following error:
+# ```
+# Run set HOME=D:\a
+# Compiling OCaml part.................................................
+# mingw32-make[1]: Entering directory 'D:/a/bincat/bincat/ocaml/src'
+# info building @esy-ocaml/substs@0.0.1@d41d8cd9
+# info building ocaml@4.8.1000@d41d8cd9
+# info building @esy-ocaml/substs@0.0.1@d41d8cd9: done
+# info building esy-m4@github:esy-packages/esy-m4#c7cf0ac9221be2b1f9d90e83559ca08397a629e7@d41d8cd9
+# info building esy-m4@github:esy-packages/esy-m4#c7cf0ac9221be2b1f9d90e83559ca08397a629e7@d41d8cd9: done
+# info building esy-gmp@archive:https://gmplib.org/download/gmp/gmp-6.2.1.tar.xz#sha1:0578d48607ec0e272177d175fd1807c30b00fdf2@d3dc108f
+# info building esy-gmp@archive:https://gmplib.org/download/gmp/gmp-6.2.1.tar.xz#sha1:0578d48607ec0e272177d175fd1807c30b00fdf2@d3dc108f: done
+# info building @opam/base-threads@opam:base@36803084
+# info building @opam/base-threads@opam:base@36803084: done
+# info building @opam/base-unix@opam:base@87d0b2eb
+# info building @opam/base-unix@opam:base@87d0b2eb: done
+# info building @opam/conf-m4@opam:1@196bf219
+# info building @opam/conf-m4@opam:1@196bf219: done
+# info building @opam/conf-gmp@opam:4@c394e8f1
+# info building ocaml@4.8.1000@d41d8cd9: done
+# info building @opam/dune@opam:3.1.1@30ff5793
+# info building @opam/ocamlfind@opam:1.9.3@781b30f3
+# error: build failed with exit code: 1
+#   build log:
+#     # esy-build-package: building: @opam/dune@opam:3.1.1
+#
+#     # esy-build-package: pwd: D:\a\.esy\3\b\opam__s__dune-opam__c__3.1.1-8a162f5b
+#
+#     # esy-build-package: running: "ocaml" "bootstrap.ml" "-j" "4"
+#
+#     esy-build-package: unable to resolve command: ocaml
+# ```
+# Relevant issues:
+# * https://github.com/esy/esy/issues/418
+# * https://github.com/esy/esy/issues/428
+#name: Build-Windows
+#on: [push, pull_request]
+#
+#jobs:
+#  build-windows:
+#    runs-on: windows-2019
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v2
+#        with:
+#          # also fetch tags
+#          fetch-depth: 0
+#      - name: Install esy (OCaml package manager)
+#        run: npm install -g esy
+#      - name: Install OCaml dependencies
+#        run: |
+#          cd ocaml/src
+#          set HOME=D:\
+#          echo "HOME is %HOME%"
+#          echo ESY INSTALL START
+#          esy install -v -v
+#          echo ESY INSTALL END
+#        shell: cmd
+#      - name: Build BinCAT for Windows installer
+#        run: |
+#          set HOME=D:\a
+#          make windist PYTHON=python
+#        shell: cmd
+#        env:
+#          CAMLC: "esy ocamlc"
+#          CAMLOPT: "esy ocamlopt"
+#          CAMLLEX: "esy ocamllex"
+#          CAMLDEP: "esy ocamldep"
+#          CAMLDOC: "esy ocamldoc"
+#          CAMLFIND: "esy ocamlfind"
+#      - name: Setup tmate session
+#        uses: mxschmitt/action-tmate@v3
+#        if: always()
+#        with:
+#          limit-access-to-actor: true
+#      - name: Publish installer
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: bincat-installer
+#          # XXX
+#          path: bincat-bin-*/bincat-bin*.zip
